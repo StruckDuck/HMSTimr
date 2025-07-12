@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="HMSTimr" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>HMSTimr</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    .centered {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .blinking {
+      animation: blink 1s step-start infinite;
+      color: red;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+    select:hover {
+      background-color: #333;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="setupPage" class="centered">
+    <div>
+      <select id="hours"></select> :
+      <select id="minutes"></select> :
+      <select id="seconds"></select>
+    </div>
+    <button onclick="startTimer()">Start</button>
+  </div>
+
+  <div id="timerPage" class="centered" style="display:none;">
+    <div id="timerDisplay" style="font-size: 48px;"></div>
+    <button onclick="stopTimer()">Stop</button>
+  </div>
+
+  <div id="endPage" class="centered" style="display:none;">
+    <div id="finalTime" style="font-size: 48px;"></div>
+    <button onclick="returnToStart()">Return</button>
+  </div>
+
+  <audio id="tick" src="https://static.wixstatic.com/mp3/da145f_472162cabdba4836b48db50d0567a75c.mp3"></audio>
+  <audio id="alarm" src="https://static.wixstatic.com/mp3/da145f_b384c89d6bd34d3d90e15ac3d7233461.mp3" loop></audio>
+
+  <script>
+    const hours = document.getElementById("hours");
+    const minutes = document.getElementById("minutes");
+    const seconds = document.getElementById("seconds");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const finalTime = document.getElementById("finalTime");
+    const tick = document.getElementById("tick");
+    const alarm = document.getElementById("alarm");
+
+    let totalSeconds = 0;
+    let timer;
+    let overtime = false;
+
+    for (let i = 0; i < 60; i++) {
+      if (i < 24) hours.innerHTML += `<option value="${i}">${i}</option>`;
+      minutes.innerHTML += `<option value="${i}">${i}</option>`;
+      seconds.innerHTML += `<option value="${i}">${i}</option>`;
+    }
+
+    function startTimer() {
+      totalSeconds =
+        parseInt(hours.value) * 3600 +
+        parseInt(minutes.value) * 60 +
+        parseInt(seconds.value);
+      document.getElementById("setupPage").style.display = "none";
+      document.getElementById("timerPage").style.display = "block";
+      updateDisplay(totalSeconds);
+      timer = setInterval(() => {
+        totalSeconds--;
+        updateDisplay(totalSeconds);
+        if (totalSeconds === 0) {
+          alarm.play();
+        }
+        if (totalSeconds < 0) {
+          timerDisplay.classList.add("blinking");
+        }
+        if (totalSeconds >= 0) tick.play();
+      }, 1000);
+    }
+
+    function updateDisplay(seconds) {
+      const abs = Math.abs(seconds);
+      const h = Math.floor(abs / 3600);
+      const m = Math.floor((abs % 3600) / 60);
+      const s = abs % 60;
+      const formatted = `${h.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+      timerDisplay.textContent = seconds < 0 ? `-${formatted}` : formatted;
+    }
+
+    function stopTimer() {
+      clearInterval(timer);
+      tick.pause();
+      tick.currentTime = 0;
+      alarm.pause();
+      alarm.currentTime = 0;
+      finalTime.textContent = timerDisplay.textContent;
+      document.getElementById("timerPage").style.display = "none";
+      document.getElementById("endPage").style.display = "block";
+    }
+
+    function returnToStart() {
+      timerDisplay.classList.remove("blinking");
+      document.getElementById("endPage").style.display = "none";
+      document.getElementById("setupPage").style.display = "block";
+    }
+  </script>
+</body>
+</html>
