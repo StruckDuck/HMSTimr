@@ -132,7 +132,9 @@
     const alarm = document.getElementById("alarm");
 
     let totalSeconds = 0;
+    let elapsedMs = 0;
     let timer;
+    let lastSecond;
 
     for (let i = 0; i < 60; i++) {
       if (i < 24) hours.innerHTML += `<option value="${i}">${i}</option>`;
@@ -150,19 +152,41 @@
         parseInt(hours.value) * 3600 +
         parseInt(minutes.value) * 60 +
         parseInt(seconds.value);
+
+      elapsedMs = 0;
+      lastSecond = totalSeconds;
+
       showPage("timer");
       updateDisplay(totalSeconds);
+
       timer = setInterval(() => {
-        totalSeconds--;
-        updateDisplay(totalSeconds);
-        if (totalSeconds === 0) {
-          alarm.play();
+        elapsedMs += 200;
+
+        // Calculate seconds passed since start
+        const secondsPassed = Math.floor(elapsedMs / 1000);
+
+        // Play tick sound at 800ms into the current second (200ms before second changes)
+        if ((elapsedMs % 1000) >= 800 && (elapsedMs % 1000) < 1000) {
+          if (totalSeconds - secondsPassed > 0) {
+            tick.play();
+          }
         }
-        if (totalSeconds < 0) {
-          timerDisplay.classList.add("blinking");
+
+        // Update display only on second changes
+        if (lastSecond !== totalSeconds - secondsPassed) {
+          const currentSecond = totalSeconds - secondsPassed;
+          updateDisplay(currentSecond);
+          lastSecond = currentSecond;
+
+          if (currentSecond === 0) {
+            alarm.play();
+          }
+
+          if (currentSecond < 0) {
+            timerDisplay.classList.add("blinking");
+          }
         }
-        if (totalSeconds >= 0) tick.play();
-      }, 1000);
+      }, 200);
     }
 
     function updateDisplay(seconds) {
@@ -183,8 +207,8 @@
       alarm.pause();
       alarm.currentTime = 0;
 
-      // Preserve red font color and remove blinking
-      if (totalSeconds < 0) {
+      // Preserve red font color and remove blinking if negative
+      if (lastSecond < 0) {
         timerDisplay.classList.remove("blinking");
         timerDisplay.classList.add("red");
         finalTime.className = "red";
