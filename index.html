@@ -2,22 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="HMSTimr" />
-  <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/da145f_db86c521d3f44e60a318bfc8364feaee~mv2.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="HMSTimr">
+  <link rel="icon" href="https://static.wixstatic.com/media/da145f_db86c521d3f44e60a318bfc8364feaee~mv2.png" />
+  <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/da145f_db86c521d3f44e60a318bfc8364feaee~mv2.png">
   <title>HMSTimr</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      background-color: black;
+      background: black;
       color: white;
       font-family: Arial, sans-serif;
-      height: 100dvh;
+      height: 100vh;
+      width: 100vw;
       overflow: hidden;
     }
 
@@ -26,7 +26,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100dvh;
+      height: 100vh;
       width: 100vw;
     }
 
@@ -34,83 +34,89 @@
       display: flex;
     }
 
-    .timer {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 10vw;
-    }
-
-    .controls {
-      margin-bottom: 5vh;
-    }
-
-    .blinking {
-      animation: blink 1s step-start infinite;
-      color: red;
-    }
-
-    @keyframes blink {
-      50% { opacity: 0; }
+    select {
+      font-size: 2rem;
+      margin: 0.5rem;
+      padding: 0.5rem;
+      background: black;
+      color: white;
+      border: 1px solid gray;
     }
 
     select:hover {
       background-color: #333;
     }
 
-    select {
-      font-size: 5vw;
+    button {
+      font-size: 1.5rem;
+      padding: 0.5rem 1rem;
+      margin-top: 2rem;
       background: black;
       color: white;
-      border: 1px solid white;
-    }
-
-    button {
-      font-size: 3vw;
-      padding: 1vw 2vw;
-      background: none;
       border: 2px solid white;
-      color: white;
-      border-radius: 10px;
-      min-width: 80px;
+      border-radius: 8px;
       cursor: pointer;
     }
 
-    button:hover {
-      background-color: #333;
+    #timerDisplay {
+      font-size: 6rem;
+      text-align: center;
+    }
+
+    #finalTime {
+      font-size: 6rem;
+      text-align: center;
+    }
+
+    .blinking {
+      animation: blink 1s step-start 0s infinite;
+      color: red;
+    }
+
+    .red {
+      color: red !important;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .small-btn {
+      font-size: 1rem;
+      padding: 0.3rem 0.6rem;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
+
+  <!-- Setup Page -->
   <div id="setupPage" class="page active">
-    <div class="timer">
-      <select id="hours"></select> :
-      <select id="minutes"></select> :
+    <div>
+      <select id="hours"></select>
+      <select id="minutes"></select>
       <select id="seconds"></select>
     </div>
-    <div class="controls">
-      <button onclick="startTimer()">Start</button>
-    </div>
+    <button onclick="startTimer()">Start</button>
   </div>
 
+  <!-- Timer Page -->
   <div id="timerPage" class="page">
-    <div id="timerDisplay" class="timer"></div>
-    <div class="controls">
-      <button onclick="stopTimer()">Stop</button>
-    </div>
+    <div id="timerDisplay">00:00:00</div>
+    <button class="small-btn" onclick="stopTimer()">Stop</button>
   </div>
 
+  <!-- End Page -->
   <div id="endPage" class="page">
-    <div id="finalTime" class="timer"></div>
-    <div class="controls">
-      <button onclick="returnToStart()">Return</button>
-    </div>
+    <div id="finalTime">00:00:00</div>
+    <button class="small-btn" onclick="returnToStart()">Return</button>
   </div>
 
-  <audio id="tick" src="https://static.wixstatic.com/mp3/da145f_472162cabdba4836b48db50d0567a75c.mp3"></audio>
-  <audio id="alarm" src="https://static.wixstatic.com/mp3/da145f_b384c89d6bd34d3d90e15ac3d7233461.mp3" loop></audio>
+  <!-- Audio -->
+  <audio id="tick" src="https://static.wixstatic.com/mp3/da145f_1f1ee2fc977743eabd2801e3c06269f8.mp3"></audio>
+  <audio id="alarm" src="https://static.wixstatic.com/mp3/da145f_c3d1175af2934256aafadee94de50d8a.mp3" loop></audio>
 
+  <!-- JavaScript -->
   <script>
     const pages = {
       setup: document.getElementById("setupPage"),
@@ -176,12 +182,24 @@
       tick.currentTime = 0;
       alarm.pause();
       alarm.currentTime = 0;
+
+      // Preserve red font color and remove blinking
+      if (totalSeconds < 0) {
+        timerDisplay.classList.remove("blinking");
+        timerDisplay.classList.add("red");
+        finalTime.className = "red";
+      } else {
+        timerDisplay.classList.remove("blinking", "red");
+        finalTime.className = "";
+      }
+
       finalTime.textContent = timerDisplay.textContent;
       showPage("end");
     }
 
     function returnToStart() {
-      timerDisplay.classList.remove("blinking");
+      timerDisplay.classList.remove("blinking", "red");
+      finalTime.className = "";
       showPage("setup");
     }
   </script>
